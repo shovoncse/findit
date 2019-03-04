@@ -104,39 +104,103 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   // Override the current require with this new one
   return newRequire;
-})({"index.js":[function(require,module,exports) {
-var searchForm = document.querySelector('#search-form');
-var searchInput = document.querySelector('#search-input');
-searchForm.addEventListener('submit', submitFunc);
+})({"redditapi.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+var _default = {
+  search: function search(searchTerm, searchLimit, sortBy) {
+    return fetch("http://www.reddit.com/search.json?q=".concat(searchTerm, "&sort=").concat(sortBy, "&limit=").concat(searchLimit)).then(function (res) {
+      return res.json();
+    }).then(function (data) {
+      return data.data.children.map(function (data) {
+        return data.data;
+      });
+    }).catch(function (error) {
+      return console.log(err);
+    });
+  }
+};
+exports.default = _default;
+},{}],"index.js":[function(require,module,exports) {
+"use strict";
+
+var _redditapi = _interopRequireDefault(require("./redditapi"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+// Form
+var searchForm = document.querySelector('#search-form'); // Search Term
+
+var searchInput = document.querySelector('#search-input'); // Form Submit
+
+searchForm.addEventListener('submit', submitFunc); // Custom Submit Function
 
 function submitFunc(e) {
-  var searchTerm = searchInput.value;
-  var sortby = document.querySelector('input[name="sortby"]:checked').value;
-  var searchlimit = document.querySelector('#limit').value;
+  // get search term
+  var searchTerm = searchInput.value; // get Sort
+
+  var sortBy = document.querySelector('input[name="sortby"]:checked').value; // Get Limit
+
+  var searchLimit = document.querySelector('#limit').value; // Check Input
 
   if (searchTerm == "") {
+    // Show Message
     showMessage('Please add a Search Term', 'alert-danger');
-  }
+  } // Clear Input
+
+
+  searchInput.value = ""; // Search Reddit
+
+  _redditapi.default.search(searchTerm, searchLimit, sortBy).then(function (results) {
+    //console.log(results);
+    var output = "<div class=\"card-columns\">"; // Loop Through Posts
+
+    results.forEach(function (post) {
+      //Check for image
+      var image = post.preview ? post.preview.images[0].source.url : 'https://assets3.thrillist.com/v1/image/1507847/size/tmg-article_default_mobile.jpg';
+      output += "\n            <div class=\"card\">\n\n                <img src=\"".concat(image, "\" class=\"card-img-top\" alt=\"...\">\n                <div class=\"card-body\">\n                    <h5 class=\"card-title\">").concat(post.title, "</h5>\n                    <p class=\"card-text\">").concat(truncateText(post.selftext, 100), "</p>\n                    <a href=\"").concat(post.url, "\" target=\"_blank\" class=\"btn btn-primary\">Read More</a>\n                    <hr>\n                    <span class=\"badge badge-secondary\">Subreddit: ").concat(post.subreddit, "</span>\n                    <span class=\"badge badge-dark\">Score: ").concat(post.score, "</span>\n                </div>\n            </div>\n            ");
+    });
+    output += '</div>';
+    document.getElementById('results').innerHTML = output;
+  }); // Default Prevension
+
 
   e.preventDefault();
-  console.log(searchTerm);
-  console.log(sortby);
 } //Show Messages
 
 
 function showMessage(Messages, className) {
   //Create Div
-  var div = document.createElement('div');
-  div.className = "alert ".concat(className);
-  div.appendChild(document.createTextNode(Messages));
-  var searchContainer = document.querySelector('#search-container');
-  var search = document.querySelector('#search');
-  searchContainer.insertBefore(div, search);
+  var div = document.createElement('div'); // Add Class
+
+  div.className = "alert ".concat(className); // Add Text
+
+  div.appendChild(document.createTextNode(Messages)); // Get Parrent
+
+  var searchContainer = document.querySelector('#search-container'); // Get Search
+
+  var search = document.querySelector('#search'); // Insert Message Div
+
+  searchContainer.insertBefore(div, search); // Insert Message
+
   setTimeout(function () {
     return document.querySelector('.alert').remove();
   }, 3000);
+} // Truncate Texts
+
+
+function truncateText(text, limit) {
+  //search for ' ' (Space)
+  var shortended = text.indexOf(' ', limit); // If Space not found
+
+  if (shortended == -1) return text;
+  return text.substring(0, shortended);
 }
-},{}],"../../../AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"./redditapi":"redditapi.js"}],"../../../AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -163,7 +227,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "13140" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "3775" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
